@@ -3,7 +3,6 @@ import {TextField, Button, Container, Typography, Link, Grid} from '@material-ui
 import {makeStyles} from '@material-ui/core/styles'
 import {useAuth} from '../contexts/AuthContext'
 import  {useHistory} from "react-router-dom"
-
 const useStyles = makeStyles((theme) => ({
     card: {
         width: 500,
@@ -33,81 +32,57 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 10
     }
 }))
-
-export default function Signup() {
+export default function Login() {
     const classes = useStyles()
 
-    const { signup, userIsEmailVerified } = useAuth()
+    const {login, userIsEmailVerified} = useAuth()
+    
     const [error, setError] = useState("")
-    const [signupData, setSignupData] = useState({
+    const [loginData, setLoginData] = useState({
         email: '',
-        password: '',
-        confirmPassword: ''
+        password: ''
     })
     const history = useHistory()
 
-    async function signupClicked(event) {
+    async function loginClicked(event) {
         event.preventDefault()
         setError('')
-        const email = signupData.email
-        const password = signupData.password
-        const confirmPassword = signupData.confirmPassword
-        console.log("Signup data", signupData)
-        console.log("Email", email, "Password", password, "Confirm password", confirmPassword)
-
-        let isValid = true
-
-        if (email === '' || password === '' || confirmPassword === '') {
-            setError("Please fill all fields.")
-            isValid = false
+        const email = loginData.email
+        const password = loginData.password
+        
+        const loginStatus = await login(email, password)     
+        if (loginStatus === '') {
+            console.log("User is email verified", userIsEmailVerified())
+            if (userIsEmailVerified()) {
+                history.push('/')
+            } else {
+                history.push('/confirm-signup')
+            }
         } else {
-            if (password.length < 8) {
-                setError('Password must be 8+ characters long')
-                isValid = false
-            } else if (password.length > 20) {
-                setError('Password must be less than 20 characters long')
-                isValid = false
-            } else if (password !== confirmPassword) {
-                setError('Passwords do not match')
-                isValid = false
-            }
-            var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-            if (!email.match(mailformat)) {
-                setError('Email is incorrectly formatted')
-                isValid = false
-            }
-            if (isValid) {
-                const signupStatus = await signup(email, password)     
-                if (signupStatus === '') {
-                    
-                    history.push('/confirm-signup')
-                    
-                } else {
-                    setError(signupStatus)
-                    isValid = false
-                }
-            }
+            setError(loginStatus)
         }
+            
     }
 
     const handleChange = (event) => {
-        setSignupData({
-            ...signupData,
+        setLoginData({
+            ...loginData,
             [event.target.name]: event.target.value
         })
     }
     
     return (
-        <Container component = 'main' 
-        maxWidth = 'xs' 
-        onSubmit={signupClicked}>
+        <Container 
+            component = 'main' 
+            maxWidth = 'xs' 
+            onSubmit={loginClicked}>
             
             <div className={classes.paper}>
                 <Typography component="h1" variant="h5">
                    <b>TelegramClone</b>
                 </Typography>
                 <Typography component="h1" variant="h6">
-                   Sign up
+                   Log in
                 </Typography>
                 <form noValidate className={classes.form}>
                     <TextField
@@ -136,17 +111,7 @@ export default function Signup() {
                         autoFocus
                     />
                     <br />  
-                    <TextField
-                        variant="outlined"
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="confirmPassword"
-                        label="Confirm Password"
-                        name="confirmPassword"
-                        onChange={handleChange}
-                        autoFocus
-                    />
+                    
                     <br />
                     <Button
                         type="submit"
@@ -155,7 +120,7 @@ export default function Signup() {
                         color="primary"
                         className={classes.submissionButton}
                         >
-                            Sign up
+                            Log in
                     </Button>
                 </form>
                 
@@ -165,7 +130,7 @@ export default function Signup() {
                       <Link href = "/forgot-password" variant="body2"> Forgot Password? </Link>
                     </Grid>
                     <Grid item>
-                        <Link href = "/login" variant="body2"> Log into an account instead </Link>
+                        <Link href = "/signup" variant="body2"> Make an account instead </Link>
                     </Grid>
                 </Grid>
             </div>
